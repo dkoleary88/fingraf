@@ -15,3 +15,9 @@
 svg {
 	visibility: visible;
 }
+
+path.chartLine {
+	fill : none;
+	stroke: blue;
+	stroke-width: 1;
+}

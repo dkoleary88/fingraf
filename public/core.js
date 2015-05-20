@@ -31,8 +31,8 @@ angular.module('finGrafApp', [])
 	        var margins = {
 	        	top: 20,
 	        	right: 20,
-	        	bottom: 100,
-	        	left: 40
+	        	bottom: 30,
+	        	left: 100
 	        };
 	        var width = 600;
 	        var height = 300;
@@ -42,7 +42,7 @@ angular.module('finGrafApp', [])
 
 	        // when quote data is updated, call chart update service
 	        scope.$on('quoteUpdate', function() {
-		        	ChartService.update(width, height, scope.quotes);
+		        	ChartService.update(width, height, margins, scope.quotes);
 	        }, true);
 
 	    }
@@ -61,47 +61,70 @@ angular.module('finGrafApp', [])
 				// create svg element
 	    		var svg = d3.select(el[0]).append('svg')
 		        	.attr('width', width + margins.left + margins.right)
-		        	.attr('height', height + margins.top + margins.bottom + 100);
+		        	.attr('height', height + margins.top + margins.bottom);
 	      		
 	      		// create axes elements
 	    		svg.append('g')
-		        	.attr('class', 'y axis')
-		        	.attr('transform', 'translate('+margins.left+','+margins.top+')')
-	        	svg.append('g')
 		        	.attr('class', 'x axis')
-		        	.attr('transform', 'translate('+margins.left+','+(height+margins.top)+')')
+		        	.attr('transform', 'translate(0,'+(height+margins.top)+')')
+
+				svg.append('g')
+		        	.attr('class', 'y axis')
+		        	.attr('transform', 'translate('+margins.left+',0)')
+
+		        // create line element
+		        svg.append('path')
+		        	.attr('class', 'chartLine')
 			},
 
-			update : function(width, height, data){
+			update : function(width, height, margins, data){
 
 				var svg = d3.select('svg');
 
 				// set up scales
 		        var xscale = d3.time.scale()
-    				.domain(data.map(function(d){
-    					return new Date(d.date);
-    				}))
-    				.range([0,width]);
+    				.domain([
+    					new Date(data[0].date),
+    					new Date(data[data.length-1].date)
+    					])
+    				.range([margins.left,width+margins.left])
 
 		        var yscale = d3.scale.linear()
-    				.domain([0,d3.max(data, function(d){
-    					return d.adjClose;
-    				})])
-    				.range([height, 0])
+    				.domain([
+    					d3.min(data, function(d){
+	    					return d.adjClose;
+	    				}),
+    					d3.max(data, function(d){
+    						return d.adjClose;
+	    				})
+    				])
+    				.range([height+margins.top, margins.top])
+    				.nice();
 
     			// set up axes
 		    	var xaxis = d3.svg.axis().scale(xscale)
 		    		.orient('bottom')
-    				.ticks(d3.time.days, 5)
-    				.tickFormat(d3.time.format('%a %d'))
+    				// .ticks(d3.time.days, 5)
+    				.ticks(6)
+    				.tickFormat(d3.time.format('%d-%m-%y'));
 
 		    	var yaxis = d3.svg.axis().scale(yscale)
 		    		.orient('left');
 		        
+		        // set up chart line
+		        var line = d3.svg.line()
+		        	.x(function(d){
+		        		return xscale(new Date(d.date));
+		        	})
+		        	.y(function(d){
+		        		return yscale(d.adjClose);
+		        	});
+
 		        // transition on update (to axes elements in svg element)
-		        var t = svg.transition().duration(600);
+		        var t = svg.transition().duration(200);
 		        	t.select('g.y').call(yaxis);
 					t.select('g.x').call(xaxis);
+					t.select('path.chartLine').attr('d', line(data));
 			}
 		};
 	})
@@ -112,8 +135,8 @@ angular.module('finGrafApp', [])
 
 			// initial data on page load
 			init : function(){ return {
-				symbol:	'GOOG',
-				start: new Date('2015-05-05T14:00:00.000Z'),
+				symbol:	'AAPL',
+				start: new Date('2014-05-05T14:00:00.000Z'),
 				end: new Date()
 			}; },
 
