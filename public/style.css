@@ -1,0 +1,17 @@
+.axis path,
+.axis line,
+.axis tick {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+    color: black;
+}
+
+svg {
+	visibility: visible;
+}
