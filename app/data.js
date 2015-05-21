@@ -1,16 +1,16 @@
 var	yahooFinance = require('yahoo-finance');
 
 module.exports = {
-	// get : function(){ return 'hahaha' } /*
-	quotes :   function(body){
+	getQuotes :   function(symbol, start, end){
 				return yahooFinance.historical({
-					symbol: body.sym,
-					from: body.start,
-					to: body.end,
+					symbol: symbol.toUpperCase(),
+					from: start,
+					to: end,
 					period: 'd'
-				}).then(function(data){ 
-					// console.log(data);
-					return data; 
+				}).then(function(data){
+					return data.filter(function(e){
+						return data;
+					}); 
 				});
 
 			}  

@@ -16,8 +16,14 @@ svg {
 	visibility: visible;
 }
 
-path.chartLine {
+path.priceLine {
 	fill : none;
 	stroke: blue;
 	stroke-width: 1;
+}
+
+rect.bar {
+	stroke-width: 0;
+	fill : red;
+	opacity: 0.5;
 }

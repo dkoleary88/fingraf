@@ -74,22 +74,22 @@ angular.module('finGrafApp', [])
 
 		        // create line element
 		        svg.append('path')
-		        	.attr('class', 'chartLine')
+		        	.attr('class', 'priceLine')
 			},
 
 			update : function(width, height, margins, data){
-
+				var barHeight = height * 0.35;
 				var svg = d3.select('svg');
 
 				// set up scales
-		        var xscale = d3.time.scale()
+		        var xScale = d3.time.scale()
     				.domain([
     					new Date(data[0].date),
     					new Date(data[data.length-1].date)
     					])
-    				.range([margins.left,width+margins.left])
+    				.range([margins.left,width+margins.left]);
 
-		        var yscale = d3.scale.linear()
+		        var yScalePrice = d3.scale.linear()
     				.domain([
     					d3.min(data, function(d){
 	    					return d.adjClose;
@@ -101,30 +101,55 @@ angular.module('finGrafApp', [])
     				.range([height+margins.top, margins.top])
     				.nice();
 
-    			// set up axes
-		    	var xaxis = d3.svg.axis().scale(xscale)
+    			var yScaleVolume = d3.scale.linear()
+    				.domain([
+    					0,
+    					d3.max(data, function(d){
+    						return d.volume;
+	    				})
+    				])
+    				.range([(margins.top+height), (margins.top+height-barHeight)])
+
+    			// set up price axes
+		    	var xAxis = d3.svg.axis().scale(xScale)
 		    		.orient('bottom')
     				// .ticks(d3.time.days, 5)
     				.ticks(6)
     				.tickFormat(d3.time.format('%d-%m-%y'));
 
-		    	var yaxis = d3.svg.axis().scale(yscale)
+		    	var yAxis = d3.svg.axis().scale(yScalePrice)
 		    		.orient('left');
-		        
-		        // set up chart line
-		        var line = d3.svg.line()
+
+		        // set up price chart line
+		        var priceLine = d3.svg.line()
 		        	.x(function(d){
-		        		return xscale(new Date(d.date));
+		        		return xScale(new Date(d.date));
 		        	})
 		        	.y(function(d){
-		        		return yscale(d.adjClose);
-		        	});
+		        		return yScalePrice(d.adjClose);
+		        	})
+		        	.interpolate('monotone');
+
+		        // set up and update volume bars
+		        var bar = svg.selectAll('.bar')
+		        	.data(data, function(d){ return d.date; }); //.transition().duration(200);
+
+		        bar.enter().append('rect')
+		        	.attr('class','bar');
+
+		        bar.exit().remove();
+
+		        bar.transition().duration(200)
+		        	.attr('x',function(d){ return xScale(new Date(d.date));})
+		        	.attr('y',function(d){ return yScaleVolume(d.volume);})
+		        	.attr('height',function(d){ return (height+margins.top)- yScaleVolume(d.volume);})
+		        	.attr('width',function(d){ return width*0.5/data.length; });
 
 		        // transition on update (to axes elements in svg element)
 		        var t = svg.transition().duration(200);
-		        	t.select('g.y').call(yaxis);
-					t.select('g.x').call(xaxis);
-					t.select('path.chartLine').attr('d', line(data));
+		        	t.select('g.y').call(yAxis);
+					t.select('g.x').call(xAxis);
+					t.select('path.priceLine').attr('d', priceLine(data));
 			}
 		};
 	})
